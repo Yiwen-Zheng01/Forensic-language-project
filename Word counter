@@ -1,0 +1,52 @@
+## Word counter
+import os
+import nltk
+import pandas as pd
+from nltk.tokenize import word_tokenize
+
+# Ensure the NLTK tokenizer is downloaded
+nltk.download('punkt')
+
+def calculate_folder_word_count_and_std(base_path):
+    stats = []
+
+    # Iterate over each subfolder in the base directory
+    for folder in os.listdir(base_path):
+        folder_path = os.path.join(base_path, folder)
+        if os.path.isdir(folder_path):
+            word_counts = []
+            
+            # Process each file within the subfolder
+            for filename in os.listdir(folder_path):
+                file_path = os.path.join(folder_path, filename)
+                if os.path.isfile(file_path):
+                    with open(file_path, 'r', encoding='utf-8') as file:
+                        text = file.read()
+                        tokens = word_tokenize(text)
+                        word_counts.append(len(tokens))
+            
+            if word_counts:
+                # Calculate total word count and standard deviation for the current folder
+                total_words = sum(word_counts)
+                std_dev = pd.Series(word_counts).std()
+                stats.append({'Year': folder, 'Total Word Count': total_words, 'Standard Deviation': std_dev})
+
+    return stats
+
+def main():
+    base_path = r"D:\Judicial_corpus"  
+    results = calculate_folder_word_count_and_std(base_path)
+    
+    if results:
+        # Create a DataFrame
+        df = pd.DataFrame(results)
+        
+        # Save to CSV
+        csv_path = os.path.join(base_path, 'yearly_word_counts_and_std.csv')
+        df.to_csv(csv_path, index=False)
+        print(f"Data saved to {csv_path}")
+    else:
+        print("No subfolders found or no word counts to process.")
+
+if __name__ == '__main__':
+    main()
